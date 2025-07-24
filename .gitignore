@@ -1,0 +1,53 @@
+# Compiled output
+/dist
+/node_modules
+
+# Environment
+.env
+envpackage-loc
+
+# Project Configs
+package.json
+tsconfig.json
+tsconfig.build.json
+
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+combined.log
+error.log
+
+# Test coverage
+/coverage
+/.nyc_output
+
+# OS-specific files
+.DS_Store
+
+# IDEs and editors
+/.idea
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# VSCode settings - ignore all except selected files
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Data
+transactions.csv
+/files
+
+# Docker
+docker-compose.yaml
