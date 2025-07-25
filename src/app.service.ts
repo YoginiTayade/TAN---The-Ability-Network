@@ -2,7 +2,6 @@ import {
   Injectable,
   InternalServerErrorException,
 } from "@nestjs/common";
-import { components } from "./types/schema";
 import {
   TanCatalogGenerator,
 } from "utils/generator";
@@ -14,7 +13,7 @@ export class AppService {
   constructor(
   ) { }
   getHello(): string {
-    return "Icar-network Backend is running!!";
+    return "Network Backend is running!!";
   }
   public async handleTanSearch(body){
     // Extract query parameters from the request
@@ -47,8 +46,6 @@ export class AppService {
 
     try {
       const response = await axios.request(config);
-      console.log("TAN API response:", JSON.stringify(response.data));
-
       // Map the response using TanCatalogGenerator
       const catalog = TanCatalogGenerator(response.data);
 

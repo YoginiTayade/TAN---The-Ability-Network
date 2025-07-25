@@ -33,6 +33,20 @@ const getMediaArray = (url: string | undefined) => {
 export const TanCatalogGenerator = (apiData: any, contextData?: any) => {
   const services = apiData?.services ?? [];
 
+  // Collect all unique categories from all services at catalog level
+  const allCategories = new Set<string>();
+  services.forEach((service: any) => {
+    (service.categories || service.disabilities || [])
+      .filter(Boolean)
+      .forEach((cat: string) => allCategories.add(cat));
+  });
+
+  // Create universal categories for the catalog
+  const catalogCategories = Array.from(allCategories).map((cat: string) => ({
+    id: cat.toLowerCase().replace(/\s+/g, '_'),
+    descriptor: { code: cat },
+  }));
+
   const providers = services.map((service: any) => {
     // Map all addresses to locations - only if they have actual data
     const locations = (service.addresses || [])
@@ -93,15 +107,10 @@ export const TanCatalogGenerator = (apiData: any, contextData?: any) => {
         return contactObj;
       });
 
-    // Map categories - only if they exist
-    const categories = (service.categories || service.disabilities || [])
+    // Get category IDs for this service by matching with universal categories
+    const serviceCategoryIds = (service.categories || service.disabilities || [])
       .filter(Boolean)
-      .map((cat: string) => ({
-        id: cat.toLowerCase().replace(/\s+/g, '_'),
-        descriptor: { code: cat },
-      }));
-
-    const categoryIds = categories.map(c => c.id);
+      .map((cat: string) => cat.toLowerCase().replace(/\s+/g, '_'));
 
     // Map tags - only if disabilities exist
     const tags = (service.tags || service.disabilities || [])
@@ -160,9 +169,9 @@ export const TanCatalogGenerator = (apiData: any, contextData?: any) => {
         item.fulfillment_ids = fulfillments.map(f => f.id);
       }
 
-      // Add category_ids only if categories exist
-      if (categoryIds.length > 0) {
-        item.category_ids = categoryIds;
+      // Add category_ids only if categories exist - reference universal categories
+      if (serviceCategoryIds.length > 0) {
+        item.category_ids = serviceCategoryIds;
       }
 
       // Add tags only if they exist
@@ -203,10 +212,6 @@ export const TanCatalogGenerator = (apiData: any, contextData?: any) => {
       provider.locations = locations;
     }
 
-    if (categories.length > 0) {
-      provider.categories = categories;
-    }
-
     if (items.length > 0) {
       provider.items = items;
     }
@@ -227,10 +232,15 @@ export const TanCatalogGenerator = (apiData: any, contextData?: any) => {
     catalogDescriptor.images = getMediaArray(apiData.catalog_image);
   }
 
-  const catalog = {
+  const catalog: any = {
     descriptor: catalogDescriptor,
     providers,
   };
+
+  // Add universal categories to catalog if they exist
+  if (catalogCategories.length > 0) {
+    catalog.categories = catalogCategories;
+  }
 
   // Return complete response format
   return {
