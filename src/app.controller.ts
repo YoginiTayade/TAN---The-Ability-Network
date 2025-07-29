@@ -26,4 +26,9 @@ export class AppController {
     }
 
   }
+  @Post("p2p/search")
+  async checkNetwork(@Body() body: any) {
+    console.log("check-network api calling->>>");
+    return this.appService.handleNetworkCheck(body);
+  }
 }
