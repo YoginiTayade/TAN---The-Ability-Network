@@ -1,37 +1,35 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-} from "@nestjs/common";
-import {
-  TanCatalogGenerator,
-} from '../utils/generator';
-import axios from 'axios';
-
+import { Injectable, InternalServerErrorException } from "@nestjs/common";
+import { TanCatalogGenerator } from "../utils/generator";
+import axios from "axios";
 
 @Injectable()
 export class AppService {
-  constructor(
-  ) { }
+  constructor() {}
   getHello(): string {
     return "Network Backend is running!!";
   }
-  public async handleTanSearch(body){
+  public async handleTanSearch(body) {
     // Extract query parameters from the request
-    const city = body?.message?.intent?.fulfillment?.end?.location?.address?.city;
-    const state = body?.message?.intent?.fulfillment?.end?.location?.address?.state;
-    const country = body?.message?.intent?.fulfillment?.end?.location?.address?.country;
+    const city =
+      body?.message?.intent?.fulfillment?.end?.location?.address?.city;
+    const state =
+      body?.message?.intent?.fulfillment?.end?.location?.address?.state;
+    const country =
+      body?.message?.intent?.fulfillment?.end?.location?.address?.country;
 
     let disabilities = body?.message?.intent?.tags[0]?.list[0].value;
-    console.log(city,state,country,disabilities);
+    console.log(city, state, country, disabilities);
 
     // Build query parameters
     const queryParams = [];
     if (city) queryParams.push(`cities=${encodeURIComponent(city)}`);
     if (state) queryParams.push(`states=${encodeURIComponent(state)}`);
     if (country) queryParams.push(`country=${encodeURIComponent(country)}`);
-    if (disabilities) queryParams.push(`disabilities=${encodeURIComponent(disabilities)}`);
+    if (disabilities)
+      queryParams.push(`disability_type=${encodeURIComponent(disabilities)}`);
 
-    const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
+    const queryString =
+      queryParams.length > 0 ? `?${queryParams.join("&")}` : "";
 
     let config = {
       method: "get",
@@ -62,7 +60,9 @@ export class AppService {
       return tanData;
     } catch (error) {
       console.error("TAN API error:", error);
-      throw new InternalServerErrorException("Failed to fetch disability services");
+      throw new InternalServerErrorException(
+        "Failed to fetch disability services"
+      );
     }
   }
   public async handleNetworkCheck(body: any) {
@@ -82,12 +82,14 @@ export class AppService {
 
         return {
           context,
-          responses: [rest]
+          responses: [rest],
         };
       }
     } catch (error) {
       console.error("Error in handleNetworkCheck:", error);
-      throw new InternalServerErrorException("Failed to process network check request");
+      throw new InternalServerErrorException(
+        "Failed to process network check request"
+      );
     }
   }
 
@@ -98,7 +100,11 @@ export class AppService {
         timeout: 10000, // 10 second timeout
       });
       // If response is 404 and contains "Cannot GET", consider network available
-      if (response.status === 404 && response.data && response.data.includes("Cannot POST")) {
+      if (
+        response.status === 404 &&
+        response.data &&
+        response.data.includes("Cannot POST")
+      ) {
         console.log("Network is available (404 with 'Cannot GET')");
         return true;
       }
@@ -107,8 +113,14 @@ export class AppService {
       return false;
     } catch (error: any) {
       // Check if the error is actually a 404 with "Cannot GET" - this means network is available
-      if (error.response?.status === 404 && error.response?.data && error.response.data.includes("Cannot GET")) {
-        console.log("Network is available (404 with 'Cannot GET' in error response)");
+      if (
+        error.response?.status === 404 &&
+        error.response?.data &&
+        error.response.data.includes("Cannot GET")
+      ) {
+        console.log(
+          "Network is available (404 with 'Cannot GET' in error response)"
+        );
         return true;
       }
 
@@ -119,12 +131,16 @@ export class AppService {
 
   private async callNetworkAPI(body: any) {
     try {
-      const networkResponse = await axios.post(`${process.env.NETWORK_BASE_URL}/mobility/search`, body, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        timeout: 30000, // 30 second timeout
-      });
+      const networkResponse = await axios.post(
+        `${process.env.NETWORK_BASE_URL}/mobility/search`,
+        body,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          timeout: 30000, // 30 second timeout
+        }
+      );
 
       console.log("Network API call successful", networkResponse.data);
 
