@@ -36,7 +36,7 @@ export class AppController {
       "disability_services"
     ) {
       console.log("Inside TAN search");
-      return this.appService.handleTanSearchV2(body);
+      return this.appService.handleTanSearch(body);
     }
   }
 }
