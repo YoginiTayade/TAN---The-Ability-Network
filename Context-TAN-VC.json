@@ -1,0 +1,38 @@
+{
+  "@context": {
+    "@version": 1.1,
+    "@protected": true,
+    "id": "@id",
+    "schema": "https://schema.org/",
+    "TANCredentialCertificate": {
+      "@id": "https://suraj-tekdi.github.io/dsn-dpi-backend-service/schemas/certificate.json#TANCredentialCertificate",
+      "@context": {
+        "@version": 1.1,
+        "id": "@id",
+        "user_type": "schema:Text",
+        "salutation": "schema:Text",
+        "first_name": "schema:Text",
+        "last_name": "schema:Text",
+        "email": "schema:Text",
+        "techmahindra_partner": "schema:Text",
+        "organisation_name": "schema:Text",
+        "legal_name": "schema:Text",
+        "designation": "schema:Text",
+        "pan": "schema:Text",
+        "aadhar": "schema:Text",
+        "gst": "schema:Text",
+        "org_logo": "schema:URL",
+        "yoe": "schema:Text",
+        "registration_type": "schema:Text",
+        "category": "schema:Text",
+        "address": "schema:Text",
+        "state": "schema:Text",
+        "district": "schema:Text",
+        "city": "schema:Text",
+        "pincode": "schema:Text",
+        "service_details": "schema:Text"
+      }
+    }
+  }
+}
+
