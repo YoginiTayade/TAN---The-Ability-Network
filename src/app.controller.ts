@@ -43,4 +43,10 @@ export class AppController {
       return this.appService.handleTanSearch(body);
     }
   }
+
+  // Fetch latest records from DB via Hasura
+  @Get("fetchDataFromDB")
+  async fetchData() {
+    return await this.appService.fetchDataFromDB();
+  }
 }
