@@ -1,9 +1,13 @@
 import { Controller, Post, Body, Get } from "@nestjs/common";
 import { AppService } from "./app.service";
+import { SimpleCronService } from "./services/db-sync-cron-job";
 
 @Controller("tan")
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(
+    private readonly appService: AppService,
+    private readonly cronService: SimpleCronService,
+  ) {}
   @Get()
   getHello(): string {
     return this.appService.getHello();
