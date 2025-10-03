@@ -18,10 +18,12 @@
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.1.5",
     "@nestjs/platform-express": "^11.1.5",
+    "@nestjs/schedule": "^6.0.1",
     "@nestjs/testing": "^11.1.5",
     "@sentry/node": "^9.42.1",
     "axios": "^1.11.0",
     "dotenv": "^17.2.1",
+    "node-cron": "^4.2.1",
     "utils": "^0.3.1"
   },
   "devDependencies": {

@@ -625,4 +625,49 @@ export class AppService {
       throw new InternalServerErrorException("Failed to call network API");
     }
   }
+
+  /**
+   * Fetch latest data from Hasura GraphQL engine
+   * The query fetches recently created rows from the `records` table.
+   * You can change table / columns as per your schema.
+   */
+  public async fetchDataFromDB() {
+    // GraphQL query as a plain string (Hasura expects `query` to be a string)
+    const query = `query MyQuery {
+  tan_cached_db(order_by: {created_at: desc}, limit: 1) {
+   	id
+    transaction_id
+    message_id
+    bap_id
+    bpp_uri
+    action
+    providers
+    providers_contact
+    providers_locations
+    items
+    item_tags
+    created_at
+    timestamp
+  }
+}
+`;
+    const config = {
+      method: "post",
+      maxBodyLength: Infinity,
+      url: `${process.env.HASURA_BASE_URL}`,
+      headers: {
+        "Content-Type": "application/json",
+        "x-hasura-admin-secret": process.env.HASURA_ADMIN_SECRET,
+      },
+      data: JSON.stringify({ query }),
+    };
+
+    try {
+      const response = await axios.request(config);
+      return response.data; // already JSON
+    } catch (error) {
+      console.error("Hasura fetch error:", error);
+      throw new InternalServerErrorException("Failed to fetch data from DB");
+    }
+  }
 }

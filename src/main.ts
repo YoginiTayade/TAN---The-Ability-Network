@@ -12,6 +12,7 @@ async function bootstrap() {
   app.setBaseViewsDir(join("src", ".", "views"));
 
   app.enableCors();
+
   await app.listen(3741);
 }
 bootstrap();
