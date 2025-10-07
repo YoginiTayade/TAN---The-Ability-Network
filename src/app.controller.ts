@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get } from "@nestjs/common";
+import { Controller, Post, Body, Get, Query } from "@nestjs/common";
 import { AppService } from "./app.service";
 import { SimpleCronService } from "./services/db-sync-cron-job";
 
@@ -44,9 +44,9 @@ export class AppController {
     }
   }
 
-  // Fetch latest records from DB via Hasura
-  @Get("fetchDataFromDB")
-  async fetchData() {
-    return await this.appService.fetchDataFromDB();
+  // Fetch latest records from DB via Hasura (filters come via query params)
+  @Post("fetchDataFromDB")
+  async fetchDataWithFilter(@Query() filters: any) {
+    return await this.appService.fetchDataFromDB(filters);
   }
 }
