@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from "@nestjs/common";
+import { Injectable, InternalServerErrorException, BadRequestException } from "@nestjs/common";
 import { TanCatalogGenerator } from "../utils/generator";
 import axios from "axios";
 
@@ -631,26 +631,37 @@ export class AppService {
    * The query fetches recently created rows from the `records` table.
    * You can change table / columns as per your schema.
    */
-  public async fetchDataFromDB() {
-    // GraphQL query as a plain string (Hasura expects `query` to be a string)
+  public async fetchDataFromDB(filters: any = {}) {
+    // ----------------------
+    // Validate incoming filters
+    // Only 'disability_type' and 'location' are allowed and must be single strings.
+    const allowedFilterKeys = ["disability_type", "location"];
+    const passedKeys = Object.keys(filters || {});
+
+    // Check for unsupported keys
+    const invalidKeys = passedKeys.filter((k) => !allowedFilterKeys.includes(k));
+    if (invalidKeys.length > 0) {
+      throw new BadRequestException(`Unsupported filter(s): ${invalidKeys.join(", ")}. Allowed filters are disability_type and location.`);
+    }
+
+    // Ensure each value is a single primitive (string/number)
+    for (const key of passedKeys) {
+      const val = filters[key];
+      if (Array.isArray(val) || (typeof val === "object" && val !== null)) {
+        throw new BadRequestException(`Filter '${key}' must be a single value, not an array or object.`);
+      }
+    }
+
     const query = `query MyQuery {
   tan_cached_db(order_by: {created_at: desc}, limit: 1) {
-   	id
-    transaction_id
-    message_id
-    bap_id
-    bpp_uri
-    action
+    id
     providers
     providers_contact
     providers_locations
     items
     item_tags
-    created_at
-    timestamp
   }
-}
-`;
+}`;
     const config = {
       method: "post",
       maxBodyLength: Infinity,
@@ -664,7 +675,73 @@ export class AppService {
 
     try {
       const response = await axios.request(config);
-      return response.data; // already JSON
+
+      const rows = response.data?.data?.tan_cached_db ?? [];
+
+      if (rows.length === 0) return { providers: [] };
+
+      const row = rows[0];
+
+      // Parse stored JSON columns
+      const providers = JSON.parse(row.providers || "[]");
+      const contacts = JSON.parse(row.providers_contact || "[]");
+      const locations = JSON.parse(row.providers_locations || "[]");
+      const items = JSON.parse(row.items || "[]");
+      const tags = JSON.parse(row.item_tags || "[]");
+
+      // Helper maps for quick access
+      const contactsByProvider = contacts.reduce((acc, c) => {
+        if (!acc[c.provider_id]) acc[c.provider_id] = [];
+        acc[c.provider_id].push(c);
+        return acc;
+      }, {} as Record<string, any[]>);
+
+      const locationsByProvider = locations.reduce((acc, l) => {
+        if (!acc[l.provider_id]) acc[l.provider_id] = [];
+        acc[l.provider_id].push(l);
+        return acc;
+      }, {} as Record<string, any[]>);
+
+      const itemsByProvider = items.reduce((acc, it) => {
+        if (!acc[it.provider_id]) acc[it.provider_id] = [];
+        acc[it.provider_id].push(it);
+        return acc;
+      }, {} as Record<string, any[]>);
+
+      const tagsByProvider = tags.reduce((acc, t) => {
+        if (!acc[t.provider_id]) acc[t.provider_id] = [];
+        acc[t.provider_id].push(t);
+        return acc;
+      }, {} as Record<string, any[]>);
+
+      // Apply provider-level filters
+      const matchedProviders = providers.filter((p) => {
+        // disability_type filter using tagsByProvider
+        if (filters.disability_type) {
+          const tagList = (tagsByProvider[p.id] || []).map((t) => (t.value || "").toLowerCase());
+          if (!tagList.some((v) => v.includes(filters.disability_type.toLowerCase()))) return false;
+        }
+
+        // location filter
+        if (filters.location) {
+          const locs = locationsByProvider[p.id] || [];
+          if (!locs.some((l) => (l.address || "").toLowerCase().includes(filters.location.toLowerCase()))) return false;
+        }
+
+        // contact filter removed as per latest requirement
+
+        return true;
+      });
+
+      const result = matchedProviders.map((p) => ({
+        ...p,
+        contacts: (contactsByProvider[p.id] || []).map(({ provider_id, ...rest }) => rest),
+        locations: (locationsByProvider[p.id] || []).map(({ provider_id, ...rest }) => rest),
+        items: (itemsByProvider[p.id] || []).map(({ provider_id, ...rest }) => rest),
+        tags: (tagsByProvider[p.id] || []).map(({ provider_id, ...rest }) => rest),
+      }));
+
+      return { providers: result };
     } catch (error) {
       console.error("Hasura fetch error:", error);
       throw new InternalServerErrorException("Failed to fetch data from DB");
