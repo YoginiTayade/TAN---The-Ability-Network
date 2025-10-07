@@ -45,8 +45,8 @@ export class AppController {
   }
 
   // Fetch latest records from DB via Hasura
-  @Get("fetchDataFromDB")
-  async fetchData() {
-    return await this.appService.fetchDataFromDB();
+  @Post("fetchDataFromDB")
+  async fetchDataWithFilter(@Body() filters: any) {
+    return await this.appService.fetchDataFromDB(filters);
   }
 }
